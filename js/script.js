@@ -1,102 +1,136 @@
+  
 //
 // Lista de tareas
 //
 
 //
-//MODELO
+// Modelo.
 //
 
-/*-------------------------------------------------------------------------------------------------------------------------------*/
-
-//Lista de tareas(array)
+// Contador de tareas (para asignar un id único a cada tarea).
+let contadorTareas = 0;
+// Lista de tareas (Array).
 let tareas = [];
+// Trata de obtener la lista de tareas de localStorage,
+// si el resultado es distinto de 'null', usa las tareas almacenadas.
+const datosLocalStorage = localStorage.getItem('tareas');
+if (datosLocalStorage) {
+  tareas = JSON.parse(datosLocalStorage);
+}
 
-// No de error al no tener datos
-let datosLocalStorage = localStorage.getItem('tareas');
-      
-  if (datosLocalStorage !== null){
-      tareas = JSON.parse(datosLocalStorage);
-  }
-    console.log(tareas);
+// Se lee el contador de tareas del localStorage.
+const contadorLocalStorage = localStorage.getItem('contador');
+console.log(contadorLocalStorage);
 
-// Contador de tareas (asigna un id unico a cada tarea)
-let count = 0;
+console.log(tareas);
 
-//Funcion que agrega tareas
-function addTask(nameTarea, dateTarea, completTarea) {
+if (contadorLocalStorage) {
+  contadorTareas = parseInt(contadorLocalStorage);
+}
 
-// Crea un objeto que representa la nueva tarea
-  const homework = {
-    id: count,
-    name: nameTarea,
-    complet: completTarea,
-    fecha: dateTarea,
+// addTask(): Agrega una tarea en la lista.
+function addTask(nombreTarea, fechaTarea, completoTarea) {
+  // Crea un objeto que representa la nueva tarea.
+  const nuevaTarea = {
+    id: contadorTareas,
+    nombre: nombreTarea,
+    completo: completoTarea,
+    fecha: fechaTarea,
   };
 
-// Agrega al array
-tareas.push(homework);
+  // Agrega el objeto en el array.
+  tareas.push(nuevaTarea);
 
-//Incrementa el contador de tareas  
-count++;
+  // Incrementa el contador de tareas.
+  contadorTareas++;
+  // Se guarda el contador de tareas en localStorage.
+  localStorage.setItem('contador', contadorTareas);
 
-appendTaskDom(homework);
-// Agarra una variable y transformar en string usando Json
-localStorage.setItem('tareas', JSON.stringify(tareas));
-
-}
-//
-//VISTA
-//
-//
-
-/*--------------------------------------------------------------------*/
-const list = document.getElementById('task-list');
-
-function appendTaskDom(tarea) {
-
-// Item de la lista
-const item = document.createElement('li')
-item.className = 'task-list__item';
-//item.classList.add('task-list__item')
-
-//Checkbox
-const checkbox = document.createElement('input');
-checkbox.setAttribute('type', 'checkbox');
-checkbox.setAttribute('id', `tarea-${tarea.id}`);
-    
-//Label
-const label = document.createElement('label');
-label.setAttribute('for', `tarea-${tarea.id}`);
-count++
-label.innerHTML = `${tarea.nameTarea}-${tarea.dateTarea}`;
-
-// Se agregan elementos
-item.appendChild(checkbox);
-item.appendChild(label);
-list.appendChild(item);
-      
-}
-
-for(let i = 0; i < tareas.length; i++){
-  appendTaskDom(tareas)
+  // Agrega la tarea al DOM.
+  appendTaskDOM(nuevaTarea);
+  
+  // Guarda la lista de tareas en localStorage.
+  localStorage.setItem('tareas', JSON.stringify(tareas));
 }
 
 //
-//CONTROLADOR
+// Vista.
 //
 
-/*-------------------------------------------------------------------------------------*/
+// Lista de tareas (DOM).
+const lista = document.getElementById('task-list');
+
+function appendTaskDOM(tarea) {
+  // Item de la lista
+  const item = document.createElement('li');
+  item.className = 'task-list__item';
+  // Checkbox.
+  const checkbox = document.createElement('input');
+  checkbox.setAttribute('type', 'checkbox');
+  checkbox.setAttribute('id', `tarea-${tarea.id}`);
+  // Label.
+  const label = document.createElement('label');
+  label.setAttribute('for', `tarea-${tarea.id}`);
+  label.innerHTML = `${tarea.nombre} - ${tarea.fecha}`;
+  // Botón de borrar.
+  const buttonDelete = document.createElement('button');
+  buttonDelete.className = 'task-list__delete';
+  buttonDelete.setAttribute('id', `delete-${tarea.id}`);
+  buttonDelete.innerHTML = 'Borrar';
+  // Se agregan elementos.
+  item.appendChild(checkbox);
+  item.appendChild(label);
+  item.appendChild(buttonDelete);
+  lista.appendChild(item);
+
+  checkbox.addEventListener("click", (event) => {
+    let id_checkbox = checkbox.getAttribute("id")
+    for(let i = 0; i < tareas.length; i++){
+      if(id_checkbox == true){
+        item.classList.add('completo');
+      }else{
+        item.classList.add('incompleto');
+      }
+    }
+  });
+
+  buttonDelete.addEventListener("click", (event) => {
+    const id = buttonDelete.getAttribute("id");
+    for(let i = 0; i < tareas.length; i++){
+    id=document.getElementById(checkbox);
+    id.parentNode.removeChild(tarea.id);
+    }
+  });
+}
+
+// Inicialización de la lista del DOM, a partir de las tareas existentes.
+for (let i = 0; i < tareas.length; i++) {
+  appendTaskDOM(tareas[i]);
+}
+
+
+
+
+
+
+
+//
+// Controlador.
+//
+
+// Formulario para añadir tareas.
 const formulario = document.getElementById('new-task-form');
 
+// Event handler para el evento 'submit' del formulario.
+// Crea una nueva tarea.
 formulario.addEventListener('submit', (event) => {
-// Se cancela el comportamiento default del formulario.
-event.preventDefault();
-//llama a la funcion
-addTask(formulario.elements[0].value, formulario.elements[1].value, false);
-  
-// Resetear
-formulario.elements[0].value = " ";
-formulario.elements[1].value = " ";
+  // Se cancela el comportamiento default del formulario.
+  event.preventDefault();
 
-});
+  // Agrega el nuevo ítem al modelo.
+  addTask(formulario.elements[0].value, formulario.elements[1].value, false);
 
+  // Reseteamos el form.
+  formulario.elements[0].value = '';
+  formulario.elements[1].value = '';
+})
